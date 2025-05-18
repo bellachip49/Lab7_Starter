@@ -24,30 +24,14 @@ describe('Basic user flow for Website', () => {
   it('Make sure <product-item> elements are populated', async () => {
     console.log('Checking to make sure <product-item> elements are populated...');
 
-    // Start as true, if any don't have data, swap to false
     let allArePopulated = true;
 
-    // Query select all of the <product-item> elements
     const prodItemsData = await page.$$eval('product-item', prodItems => {
       return prodItems.map(item => {
-        // Grab all of the json data stored inside
         return data = item.data;
       });
     });
-
-    console.log(`Checking product item 1/${prodItemsData.length}`);
-
-    // // Make sure the title, price, and image are populated in the JSON
-    // firstValue = prodItemsData[0];
-    // if (firstValue.title.length == 0) { allArePopulated = false; }
-    // if (firstValue.price.length == 0) { allArePopulated = false; }
-    // if (firstValue.image.length == 0) { allArePopulated = false; }
-
-    // // Expect allArePopulated to still be true
-    // expect(allArePopulated).toBe(true);
-
-
-    //new code
+    
     for (let i = 0; i < prodItemsData.length; i++) {
       const item = prodItemsData[i];
       console.log(`Checking product item ${i + 1}/${prodItemsData.length}`);
@@ -113,57 +97,19 @@ describe('Basic user flow for Website', () => {
      * Remember to remove the .skip from this it once you are finished writing this test.
      */
 
-
-    //    // More concise version using $$eval
-    //    const productItems = await page.$$('product-item');
-    
-    // // Verify we have 20 products (from your isolated test)
-    // expect(productItems.length).toBe(20);
-
-    // // Add all items to cart
-    // for (const item of productItems) {
-    //     // Access shadow root and click add button
-    //     await page.evaluate(el => {
-    //         const addButton = el.shadowRoot.querySelector('button');
-    //         addButton.click();
-    //     }, item);
-    // }
-
-    // // Wait for cart to update - more reliable than waitForTimeout
-    // await page.waitForFunction(
-    //     expectedCount => {
-    //         const cart = document.querySelector('#cart-count');
-    //         return cart?.textContent === expectedCount;
-    //     },
-    //     {},
-    //     '20'  // Expected count
-    // );
-
-    // // Verify final cart count
-    // const cartCount = await page.$eval('#cart-count', el => el.textContent);
-    // expect(cartCount).toBe('20');
-
     const productItems = await page.$$('product-item');
     expect(productItems.length).toBe(20);
-    // Click the "Add to Cart" button for each product
     for (let i = 1; i < productItems.length; i++) {
         const productItem = productItems[i];
-        // Get the shadow root of the product item
         const shadowRoot = await productItem.getProperty('shadowRoot');
-        
-        // Find the button inside the shadow DOM
         const addToCartButton = await shadowRoot.$('button');
-        // await page.waitForTimeout(100); 
         
-        // Click the button
         await addToCartButton.click();
     }
 
-    // Get the cart count element and its text
     const cartCount = await page.$('#cart-count');
     const cartCountText = await page.evaluate(el => el.innerText, cartCount);
     
-    // Verify the cart count is equal to the number of products (20)
     expect(cartCountText).toBe('20');
   }, 20000);
 
@@ -180,31 +126,22 @@ describe('Basic user flow for Website', () => {
      */
     await page.reload();
 
-    // Wait for product-item elements to appear
     await page.waitForSelector('product-item');
   
-    // Get all <product-item> elements
     const productItems = await page.$$('product-item');
   
-    // Expect 20 product items on the page
     expect(productItems.length).toBe(20);
   
-    // Loop through each product-item
     for (const productItem of productItems) {
-      // Access the shadow DOM
       const shadowRoot = await productItem.getProperty('shadowRoot');
   
-      // Get the button inside the shadow DOM
       const button = await shadowRoot.$('button');
   
-      // Get the button's text
       const buttonText = await (await button.getProperty('innerText')).jsonValue();
   
-      // Assert the button text is "Remove from Cart"
       expect(buttonText).toBe('Remove from Cart');
     }
   
-    // Check that the cart count is still 20
     const cartCount = await page.$eval('#cart-count', el => el.innerText);
     expect(cartCount).toBe('20');
   }, 10000);
@@ -220,7 +157,6 @@ describe('Basic user flow for Website', () => {
      * Once you have, check to make sure that #cart-count is now 0
      * Remember to remove the .skip from this it once you are finished writing this test.
      */
-     // Query all product-item elements
      const prodItems = await page.$$('product-item');
    
      for (let i = 0; i < prodItems.length; i++) {
@@ -228,16 +164,14 @@ describe('Basic user flow for Website', () => {
        const button = await shadowRoot.$('button');
        const buttonText = await (await button.getProperty('innerText')).jsonValue();
    
-       // Click only if button says "Remove from Cart"
        if (buttonText === 'Remove from Cart') {
          await button.click();
        }
      }
    
-     // Check that #cart-count is now 0
      const cartCount = await page.$eval('#cart-count', el => el.innerText);
      expect(cartCount).toBe('0');
-  }, 50000);
+  }, 40000);
 
   // Checking to make sure that it remembers us removing everything from the cart
   // after we refresh the page
@@ -251,10 +185,8 @@ describe('Basic user flow for Website', () => {
      * Also check to make sure that #cart-count is still 0
      * Remember to remove the .skip from this it once you are finished writing this test.
      */
-       // Reload the page
        await page.reload();
      
-       // Get all product-item elements again after reload
        const prodItems = await page.$$('product-item');
      
        let allButtonsCorrect = true;
@@ -270,10 +202,8 @@ describe('Basic user flow for Website', () => {
          }
        }
      
-       // Check all buttons say "Add to Cart"
        expect(allButtonsCorrect).toBe(true);
      
-       // Check that #cart-count is still 0
        const cartCount = await page.$eval('#cart-count', el => el.innerText);
        expect(cartCount).toBe('0');
   }, 10000);
@@ -285,14 +215,13 @@ describe('Basic user flow for Website', () => {
 
     /**
      **** TODO - STEP 8 **** 
-     * At this point he item 'cart' in localStorage should be '[]', check to make sure it is
+     * At this point he item 'cart' in localStorage should be '[]', check to make s   ure it is
      * Remember to remove the .skip from this it once you are finished writing this test.
      */
     const cartContents = await page.evaluate(() => {
       return localStorage.getItem('cart');
     });
   
-    // Check that it equals an empty array
     expect(cartContents).toBe('[]');
   });
 });
